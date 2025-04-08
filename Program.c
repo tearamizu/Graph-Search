@@ -27,11 +27,14 @@ typedef struct {
 
 void firstGraph();
 void secondGraph();
+void initGraph(Graph graph);
+void runSearchAlgorithms(Graph graph, int start, int goal, int numVertices, char* labels[]);
 void initPQ(PriorityQueue* pq);
 void pushPQ(PriorityQueue* pq, int vertex, int cost);
 PQNode popPQ(PriorityQueue* pq);
 bool isEmpty(PriorityQueue* pq);
 void addEdge(Graph graph, int from, int to, int cost);
+void addEdgeHelper(Graph graph, int from, int to, int cost);
 void breadthFirstSearch(Graph graph, int start, int goal, int numVertices, char* labels[]);
 void depthFirstSearch(Graph graph, int start, int goal, int numVertices, char* labels[]);
 bool depthFirstSearchHelper(Graph graph, int vertex, int goal, bool* visited, char* labels[]);
@@ -39,6 +42,7 @@ void bestFirstSearch(Graph graph, int start, int goal, char* labels[]);
 void hillClimbing(Graph graph, int start, int goal, char* labels[]);
 void branchAndBound(Graph graph, int start, int goal, char* labels[]);
 void dynamicProgramming(Graph graph, int start, int goal, int numVertices, char* labels[]);
+void freeGraph(Graph graph, int numVertices);
 
 int main() {
     int choice;
@@ -85,11 +89,9 @@ int main() {
 
 void firstGraph() {
     Graph graph;
-    for (int i = 0; i < MAX; i++) {
-        graph[i].head = NULL;
-    }
+    initGraph(graph);
 
-    char* labels[] = {"S", "A", "B", "C", "D", "Z"};
+    char* label[] = {"S", "A", "B", "C", "D", "Z"};
 
     addEdge(graph, 0, 1, 4);
     addEdge(graph, 0, 2, 2);
@@ -104,21 +106,15 @@ void firstGraph() {
     int goal = 5;
     int numVertices = 6;
 
-    breadthFirstSearch(graph, start, goal, numVertices, labels);
-    depthFirstSearch(graph, start, goal, numVertices, labels);
-    bestFirstSearch(graph, start, goal, labels);
-    hillClimbing(graph, start, goal, labels);
-    branchAndBound(graph, start, goal, labels);
-    dynamicProgramming(graph, start, goal, numVertices, labels);
+    runSearchAlgorithms(graph, start, goal, numVertices, label);
+    freeGraph(graph, numVertices);
 }
 
 void secondGraph() {
     Graph graph;
-    for (int i = 0; i < MAX; i++) {
-        graph[i].head = NULL;
-    }
+    initGraph(graph);
 
-    char* labels[] = {"A", "B", "C", "D", "E", "F", "G", "Z"};
+    char* label[] = {"A", "B", "C", "D", "E", "F", "G", "Z"};
 
     addEdge(graph, 0, 1, 3);
     addEdge(graph, 0, 2, 5);
@@ -136,12 +132,23 @@ void secondGraph() {
     int goal = 7;
     int numVertices = 8;
 
+    runSearchAlgorithms(graph, start, goal, numVertices, label);
+    freeGraph(graph, numVertices);
+}
+
+void runSearchAlgorithms(Graph graph, int start, int goal, int numVertices, char* labels[]) {
     breadthFirstSearch(graph, start, goal, numVertices, labels);
     depthFirstSearch(graph, start, goal, numVertices, labels);
     bestFirstSearch(graph, start, goal, labels);
     hillClimbing(graph, start, goal, labels);
     branchAndBound(graph, start, goal, labels);
     dynamicProgramming(graph, start, goal, numVertices, labels);
+}
+
+void initGraph(Graph graph) {
+    for (int i = 0; i < MAX; i++) {
+        graph[i].head = NULL;
+    }
 }
 
 void initPQ(PriorityQueue* pq) {
@@ -181,18 +188,17 @@ bool isEmpty(PriorityQueue* pq) {
     return pq->size == 0;
 }
 
-void addEdge(Graph graph, int from, int to, int cost) {
+void addEdgeHelper(Graph graph, int from, int to, int cost) {
     Node* newNode = (Node*) malloc(sizeof(Node));
     newNode->vertex = to;
     newNode->cost = cost;
     newNode->next = graph[from].head;
     graph[from].head = newNode;
+}
 
-    newNode = (Node*) malloc(sizeof(Node));
-    newNode->vertex = from;
-    newNode->cost = cost;
-    newNode->next = graph[to].head;
-    graph[to].head = newNode;
+void addEdge(Graph graph, int from, int to, int cost) {
+    addEdgeHelper(graph, from, to, cost);
+    addEdgeHelper(graph, to, from, cost);
 }
 
 void breadthFirstSearch(Graph graph, int start, int goal, int numVertices, char* labels[]) {
@@ -288,6 +294,11 @@ void hillClimbing(Graph graph, int start, int goal, char* labels[]) {
 
     printf("Hill Climbing: ");
     printf("%s ", labels[current]);
+
+    if (graph[start].head == NULL) {
+        printf("\nTidak ada jalur dari node awal.\n");
+        return;
+    }
 
     while (current != goal) {
         Node* temp = graph[current].head;
@@ -390,4 +401,15 @@ void dynamicProgramming(Graph graph, int start, int goal, int numVertices, char*
         printf("%s ", labels[path[i]]);
     }
     printf("\nShortest Path Cost (Dijkstra): %d\n", dist[goal]);
+}
+
+void freeGraph(Graph graph, int numVertices) {
+    for (int i = 0; i < numVertices; i++) {
+        Node* temp = graph[i].head;
+        while (temp) {
+            Node* toFree = temp;
+            temp = temp->next;
+            free(toFree);
+        }
+    }
 }
