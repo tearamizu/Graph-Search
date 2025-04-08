@@ -145,6 +145,7 @@ void runSearchAlgorithms(Graph graph, int start, int goal, int numVertices, char
     dynamicProgramming(graph, start, goal, numVertices, labels);
 }
 
+//inisiasi graph, dan headnya di set NULL
 void initGraph(Graph graph) {
     for (int i = 0; i < MAX; i++) {
         graph[i].head = NULL;
